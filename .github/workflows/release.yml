@@ -1,0 +1,87 @@
+name: Create Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'version (e.g. v1.0.0)'
+        required: true
+        default: 'v0.0.0'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build and Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24'
+          cache: true
+
+      - name: Get the version
+        id: get_version
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "VERSION=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+          else
+            echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create tag if not exists
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git tag -a ${{ github.event.inputs.version }} -m "Release ${{ github.event.inputs.version }}"
+          git push origin ${{ github.event.inputs.version }}
+        continue-on-error: true
+
+      - name: Build for all platforms
+        run: |
+          mkdir -p target
+          GOOS=linux GOARCH=amd64 go build -o target/qbtr-linux-amd64 -ldflags="-X 'main.Version=${{ steps.get_version.outputs.VERSION }}'"
+          GOOS=linux GOARCH=arm64 go build -o target/qbtr-linux-arm64 -ldflags="-X 'main.Version=${{ steps.get_version.outputs.VERSION }}'"
+          GOOS=darwin GOARCH=amd64 go build -o target/qbtr-darwin-amd64 -ldflags="-X 'main.Version=${{ steps.get_version.outputs.VERSION }}'"
+          GOOS=darwin GOARCH=arm64 go build -o target/qbtr-darwin-arm64 -ldflags="-X 'main.Version=${{ steps.get_version.outputs.VERSION }}'"
+          GOOS=windows GOARCH=amd64 go build -o target/qbtr-windows-amd64.exe -ldflags="-X 'main.Version=${{ steps.get_version.outputs.VERSION }}'"
+          GOOS=windows GOARCH=arm64 go build -o target/qbtr-windows-arm64.exe -ldflags="-X 'main.Version=${{ steps.get_version.outputs.VERSION }}'"
+
+      - name: Create checksums
+        working-directory: ./target
+        run: |
+          sha256sum qbtr-* > SHA256SUMS.txt
+
+      - name: Create release archives
+        working-directory: ./target
+        run: |
+          for file in qbtr-*; do
+            if [[ "${file}" == *.exe ]]; then
+              zip -j "${file%.exe}.zip" "${file}"
+            else
+              tar czf "${file}.tar.gz" "${file}"
+            fi
+          done
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            target/*.tar.gz
+            target/*.zip
+            target/SHA256SUMS.txt
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+          token: ${{ secrets.GITHUB_TOKEN }} 
