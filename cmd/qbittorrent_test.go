@@ -8,9 +8,9 @@ import (
 
 func TestQBGetTrackers(t *testing.T) {
 	qbClient := qbittorrent.NewClient(qbittorrent.Config{
-		Host:     "http://localhost:8080",
-		Username: "admin",
-		Password: "adminadmin",
+		Host:     getEnvOrDefault("TEST_QB_URL", "http://localhost:8080"),
+		Username: getEnvOrDefault("TEST_QB_USERNAME", "admin"),
+		Password: getEnvOrDefault("TEST_QB_PASSWORD", "adminadmin"),
 	})
 
 	err := qbClient.Login()
