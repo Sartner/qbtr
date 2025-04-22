@@ -1,0 +1,16 @@
+version: '3'
+
+services:
+  builder:
+    build:
+      context: ..
+      dockerfile: ../Dockerfile
+      target: builder
+      args:
+        VERSION: "dev"
+        BUILD_DATE: "${BUILD_DATE:-$(date -u '+%Y-%m-%d %H:%M:%S UTC')}"
+        COMMIT_HASH: "${COMMIT_HASH:-unknown}"
+    volumes:
+      - ../target:/app/build
+    command: >
+      sh -c "mkdir -p /app/build && go build -o /app/build/qbtr -ldflags='-s -w -X main.Version=${VERSION:-dev} -X main.BuildDate=${BUILD_DATE:-$(date -u +'%Y-%m-%dT%H:%M:%SZ')} -X main.CommitHash=${COMMIT_HASH:-unknown}' ." 
