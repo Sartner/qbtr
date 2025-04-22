@@ -64,12 +64,12 @@ qbtr \
 
 | Flag | Description | Default                                |
 |------|-------------|----------------------------------------|
-| `--qb-url` | qBittorrent WebUI URL | http://localhost:8080                  |
+| `--qb-url` | qBittorrent WebUI URL | (required)                  |
 | `--qb-username` | qBittorrent username | (empty)                                |
 | `--qb-password` | qBittorrent password | (empty)                                |
 | `--qb-torrents-dir` | Directory containing torrent files | (required)                             |
 | `--qb-auto-delete` | Automatically delete torrents from qBittorrent after transfer | false                                  |
-| `--tr-url` | Transmission RPC URL | http://localhost:9091/transmission/rpc |
+| `--tr-url` | Transmission RPC URL | (required)  |
 | `--tr-username` | Transmission username | (empty)                                |
 | `--tr-password` | Transmission password | (empty)                                |
 | `--tr-auto-start` | Automatically start torrents in Transmission | false                                  |
