@@ -57,7 +57,7 @@ for platform in "${platforms[@]}"; do
     -e GOARCH=$arch \
     -e GOARM=${variant#v} \
     qbtr-builder \
-    go build -o "/output/qbtr-$os-$arch$variant" -ldflags="-s -w -X 'main.Version=$VERSION' -X 'main.CommitHash=$COMMIT_HASH' -X 'main.BuildDate=$BUILD_DATE'" .
+    go build -o "/output/qbtr-$os-$arch$variant" -gcflags=all="-l -B" -ldflags="-s -w -X 'main.Version=$VERSION' -X 'main.CommitHash=$COMMIT_HASH' -X 'main.BuildDate=$BUILD_DATE'" . && [[ "$os" == "windows" && "$arch" == "arm64" ]] || upx "$TARGET_DIR/qbtr-$os-$arch$variant"
   
   # Add extension for Windows binaries
   if [ "$os" = "windows" ]; then

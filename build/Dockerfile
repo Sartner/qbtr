@@ -9,7 +9,7 @@ ARG BUILD_DATE="unknown"
 ARG COMMIT_HASH="unknown"
 
 # Install required dependencies
-RUN apk add --no-cache git ca-certificates tzdata
+RUN apk add --no-cache ca-certificates git tzdata upx
 
 # Pre-copy dependencies to cache them in docker layer
 COPY ../go.mod go.sum ./
