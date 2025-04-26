@@ -180,11 +180,7 @@ func addTorrentToTransmission(qbClient *qbittorrent.Client, trClient *transmissi
 		return transmissionrpc.Torrent{}, false
 	}
 
-	paused := !trAutoStart
-	if dryRun {
-		paused = true
-	}
-
+	paused := true
 	addOptions := transmissionrpc.TorrentAddPayload{
 		MetaInfo:    &torrentB64,
 		Paused:      &paused,
@@ -219,6 +215,14 @@ func addTrackersToTransmission(trClient *transmissionrpc.Client, qbClient *qbitt
 		log.Printf("Failed to update trackers for torrent %s in Transmission: %v", *trTorrent.Name, err)
 		return false
 	}
+
+	if !dryRun && trAutoStart {
+		err = trClient.TorrentStartIDs(context.Background(), []int64{*trTorrent.ID})
+		if err != nil {
+			log.Printf("Failed to start torrent %s in Transmission: %v", *trTorrent.Name, err)
+		}
+	}
+
 	return true
 }
 
